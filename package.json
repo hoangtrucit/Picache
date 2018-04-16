@@ -5,7 +5,7 @@
   "types": "lib/Picache.d.ts",
   "main": "lib/Picache",
   "scripts": {
-    "build": "rm ./lib/* && tsc",
+    "build": "rm -rf ./lib/* && tsc",
     "pre": "rm ./lib/* && tsc && npm version patch"
   },
   "repository": {

@@ -8,8 +8,9 @@ export default class Picache extends React.Component<ImageProperties, State> {
   state = {
     source: {}
   };
-
+  mount = false;
   async downloadRemoteImage(uri: string) {
+    if (!this.mount) { return;}
     const name = shorthash.unique(uri);
     const path = `${FileSystem.cacheDirectory}${name}.png`;
     const image = await FileSystem.getInfoAsync(path);
@@ -22,6 +23,7 @@ export default class Picache extends React.Component<ImageProperties, State> {
   }
 
   async downloadLocalImage(source: ImageRequireSource) {
+    if (!this.mount) { return;}
     const asset = await Asset.fromModule(source);
     if (!asset.localUri) {
       await asset.downloadAsync();
@@ -61,18 +63,20 @@ export default class Picache extends React.Component<ImageProperties, State> {
           });
         }
       }
-      this.setState({
-        source: newSources
-      });
+      if (this.mount) {
+        this.setState({
+          source: newSources
+        });
+      }
     } else {
-      if (source.uri) {
+      if (source.uri && this.mount) {
         const newUri = await this.downloadRemoteImage(source.uri);
         this.setState({
           source: {
             ...source,
             uri: newUri
           }
-        });
+        },() => this.props.onLoadImageCompleted && this.props.onLoadImageCompleted());
       }
     }
   }
@@ -88,7 +92,12 @@ export default class Picache extends React.Component<ImageProperties, State> {
   }
 
   async componentDidMount() {
+    this.mount = true;
     this.downloadImage(this.props.source);
+  }
+
+  async componentWillUnmount() {
+    this.mount = false;
   }
 
   render() {
